@@ -10,11 +10,16 @@ from typing import Callable, List, Union
 import numpy as np
 import pandas as pd
 
+
+from bokeh.resources import Resources
+from bokeh.io import curdoc
+
 from bokeh.colors import RGB
 from bokeh.colors.named import (
     lime as BULL_COLOR,
     tomato as BEAR_COLOR
 )
+
 from bokeh.plotting import figure as _figure
 from bokeh.models import (
     CrosshairTool,
@@ -39,6 +44,19 @@ from bokeh.palettes import Category10
 from bokeh.transform import factor_cmap
 
 from backtesting._util import _data_period, _as_list, _Indicator
+
+
+class MyResources(Resources):
+    @property
+    def css_raw(self):
+        return super().css_raw + [
+            """body{
+                background-color: #15191c;
+                border-color: #15191c;  
+            }
+            """
+        ]
+
 
 with open(os.path.join(os.path.dirname(__file__), 'autoscale_cb.js'),
           encoding='utf-8') as _f:
@@ -89,9 +107,13 @@ def lightness(color, lightness=.94):
     rgb = np.array([color.r, color.g, color.b]) / 255
     h, _, s = rgb_to_hls(*rgb)
     rgb = np.array(hls_to_rgb(h, lightness, s)) * 255
+    print(rgb)
     return RGB(*rgb)
 
-
+def transparency(color, transparency=.94):
+    rgb = np.array([color.r, color.g, color.b, transparency])
+    return RGB(*rgb)
+    
 _MAX_CANDLES = 10_000
 
 
@@ -342,7 +364,7 @@ return this.labels[index] || "";
                       index=np.r_[index, index[::-1]],
                       equity_dd=np.r_[equity, equity.cummax()[::-1]]
                   )),
-                  fill_color='#ffffea', line_color='#ffcb66')
+                  fill_color='#ffffea50', line_color='#ffcb6650')
 
         # Equity line
         r = fig.line('index', source_key, source=source, line_width=1.5, line_alpha=1)
@@ -474,8 +496,8 @@ return this.labels[index] || "";
         df2.index.name = None
         source2 = ColumnDataSource(df2)
         fig_ohlc.segment('index', 'High', 'index', 'Low', source=source2, color='#bbbbbb')
-        colors_lighter = [lightness(BEAR_COLOR, .92),
-                          lightness(BULL_COLOR, .92)]
+        colors_lighter = [transparency(BEAR_COLOR, .2),
+                transparency(BULL_COLOR, .2)]
         fig_ohlc.vbar('index', '_width', 'Open', 'Close', source=source2, line_color=None,
                       fill_color=factor_cmap('inc', colors_lighter, ['0', '1']))
 
@@ -664,6 +686,13 @@ return this.labels[index] || "";
         merge_tools=True,
         **kwargs
     )
+    
+    curdoc().theme = 'dark_minimal'
+    fig.background = '#15191c'
+
+    curstate().file.resources = MyResources(mode='cdn')
+    print(curstate().file)
+    
     show(fig, browser=None if open_browser else 'none')
     return fig
 
@@ -726,5 +755,7 @@ def plot_heatmaps(heatmap: pd.Series, agg: Union[Callable, str], ncols: int,
         merge_tools=True,
     )
 
+    curdoc().theme = 'dark_minimal'
+    fig.background = '#15191c'
     show(fig, browser=None if open_browser else 'none')
     return fig
