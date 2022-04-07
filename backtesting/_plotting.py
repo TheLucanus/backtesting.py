@@ -107,7 +107,6 @@ def lightness(color, lightness=.94):
     rgb = np.array([color.r, color.g, color.b]) / 255
     h, _, s = rgb_to_hls(*rgb)
     rgb = np.array(hls_to_rgb(h, lightness, s)) * 255
-    print(rgb)
     return RGB(*rgb)
 
 def transparency(color, transparency=.94):
@@ -691,7 +690,6 @@ return this.labels[index] || "";
     fig.background = '#15191c'
 
     curstate().file.resources = MyResources(mode='cdn')
-    print(curstate().file)
     
     show(fig, browser=None if open_browser else 'none')
     return fig
