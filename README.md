@@ -1,3 +1,5 @@
+Darkmode version of Backtesting.py
+
 [![](https://i.imgur.com/E8Kj69Y.png)](https://kernc.github.io/backtesting.py/)
 
 Backtesting.py
