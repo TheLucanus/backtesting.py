@@ -119,6 +119,8 @@ class Strategy(metaclass=ABCMeta):
             params = ','.join(filter(None, map(_as_str, chain(args, kwargs.values()))))
             func_name = _as_str(func)
             name = (f'{func_name}({params})' if params else f'{func_name}')
+        elif type(name) == list:
+            name = name
         else:
             name = name.format(*map(_as_str, args),
                                **dict(zip(kwargs.keys(), map(_as_str, kwargs.values()))))

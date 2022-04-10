@@ -1,6 +1,10 @@
+from importlib import resources
 import os
 import re
+from sqlite3 import Row
+from statistics import mode
 import sys
+from unicodedata import name
 import warnings
 from colorsys import hls_to_rgb, rgb_to_hls
 from itertools import cycle, combinations
@@ -10,10 +14,11 @@ from typing import Callable, List, Union
 import numpy as np
 import pandas as pd
 
-
+#Modified start
 from bokeh.resources import Resources
-from bokeh.io import curdoc
-
+from bokeh.io import curdoc, output_file
+from bokeh.io.state import curstate
+#Modified end
 from bokeh.colors import RGB
 from bokeh.colors.named import (
     lime as BULL_COLOR,
@@ -55,6 +60,11 @@ class MyResources(Resources):
                 border-color: #15191c;  
             }
             """
+            # """.bk-root {
+            #         background-color: #000000;
+            #         border-color: #000000;
+            #         }
+            # """
         ]
 
 
@@ -363,6 +373,7 @@ return this.labels[index] || "";
                       index=np.r_[index, index[::-1]],
                       equity_dd=np.r_[equity, equity.cummax()[::-1]]
                   )),
+                  #fill_color='#ffffea', line_color='#ffcb66')
                   fill_color='#ffffea50', line_color='#ffcb6650')
 
         # Equity line
@@ -495,8 +506,8 @@ return this.labels[index] || "";
         df2.index.name = None
         source2 = ColumnDataSource(df2)
         fig_ohlc.segment('index', 'High', 'index', 'Low', source=source2, color='#bbbbbb')
-        colors_lighter = [transparency(BEAR_COLOR, .2),
-                transparency(BULL_COLOR, .2)]
+        colors_lighter = [transparency(BEAR_COLOR, .1),
+                transparency(BULL_COLOR, .1)]
         fig_ohlc.vbar('index', '_width', 'Open', 'Close', source=source2, line_color=None,
                       fill_color=factor_cmap('inc', colors_lighter, ['0', '1']))
 
@@ -562,6 +573,14 @@ return this.labels[index] || "";
             for j, arr in enumerate(value, 1):
                 color = next(colors)
                 source_name = f'{legend_label}_{i}_{j}'
+                
+                #change label if name is a list
+                try:
+                    if type(value.name) == list:
+                        legend_label = LegendStr(value.name[j-1])
+                except:
+                    print('Error: not enough names for indicators, automatically naming')
+                
                 if arr.dtype == bool:
                     arr = arr.astype(int)
                 source.add(arr, source_name)
@@ -686,11 +705,15 @@ return this.labels[index] || "";
         **kwargs
     )
     
+    #Modified Start
     curdoc().theme = 'dark_minimal'
     fig.background = '#15191c'
-
-    curstate().file.resources = MyResources(mode='cdn')
     
+    #add myresource to the document
+    # curstate().file['resources'] = MyResources(mode='cdn')
+    curstate().file.resources = MyResources(mode='cdn')
+
+    #Modified End
     show(fig, browser=None if open_browser else 'none')
     return fig
 
@@ -753,7 +776,9 @@ def plot_heatmaps(heatmap: pd.Series, agg: Union[Callable, str], ncols: int,
         merge_tools=True,
     )
 
+    #Modified Start
     curdoc().theme = 'dark_minimal'
+    #Modified End
     fig.background = '#15191c'
     show(fig, browser=None if open_browser else 'none')
     return fig
